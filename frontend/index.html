@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全书翻译 - AI 智能翻译</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        .app-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 16px;
+            min-height: 100vh;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            padding: 32px 0 20px;
+        }
+        .header-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 28px;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            color: #fff;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* 主卡片 */
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        /* 输入区 */
+        .input-section {
+            padding: 24px;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .section-title .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        .textarea-wrapper {
+            position: relative;
+        }
+        .input-textarea {
+            width: 100%;
+            min-height: 200px;
+            max-height: 400px;
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 15px;
+            line-height: 1.7;
+            resize: vertical;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .input-textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .input-textarea::placeholder {
+            color: #94a3b8;
+        }
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* 工具栏 */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 24px 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45);
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text);
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+        .btn-file {
+            background: #f1f5f9;
+            color: var(--text);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-file input[type="file"] {
+            position: absolute;
+            left: 0; top: 0; right: 0; bottom: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .btn-file:hover {
+            background: #e2e8f0;
+        }
+
+        /* 结果区 */
+        .result-section {
+            border-top: 1px solid var(--border);
+            padding: 24px;
+            background: #fafbfc;
+            min-height: 80px;
+        }
+        .result-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        .result-content {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 60px;
+            color: var(--text);
+        }
+        .result-placeholder {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* 加载中 */
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 20px;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: typing-bounce 1.4s infinite ease-in-out;
+        }
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing-bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* 进度条 */
+        .progress-bar-wrapper {
+            margin: 8px 0 16px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* 错误提示 */
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: var(--error);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        /* 底部操作 */
+        .result-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            justify-content: flex-end;
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-sm:hover {
+            background: #f1f5f9;
+            color: var(--text);
+        }
+        .btn-sm.copied {
+            background: #ecfdf5;
+            border-color: #6ee7b7;
+            color: var(--success);
+        }
+
+        /* 状态标签 */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-badge.idle { background: #f1f5f9; color: #64748b; }
+        .status-badge.translating { background: #eef2ff; color: #4f46e5; }
+        .status-badge.done { background: #ecfdf5; color: #10b981; }
+        .status-badge.error { background: #fef2f2; color: #ef4444; }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-dot.idle-bg { background: #94a3b8; }
+        .status-dot.translating-bg { background: #4f46e5; animation: pulse 1.5s infinite; }
+        .status-dot.done-bg { background: #10b981; }
+        .status-dot.error-bg { background: #ef4444; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .app-container { padding: 12px 8px; }
+            .header { padding: 20px 0 12px; }
+            .header h1 { font-size: 22px; }
+            .input-section, .result-section { padding: 16px; }
+            .toolbar { padding: 0 16px 12px; }
+            .input-textarea { min-height: 150px; font-size: 14px; }
+            .btn { padding: 8px 14px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useCallback } = React;
+
+        function App() {
+            const [inputText, setInputText] = useState('');
+            const [result, setResult] = useState('');
+            const [status, setStatus] = useState('idle'); // idle | translating | done | error
+            const [errorMsg, setErrorMsg] = useState('');
+            const [progress, setProgress] = useState(0);
+            const [copied, setCopied] = useState(false);
+            const [processingStep, setProcessingStep] = useState('');
+            const textareaRef = useRef(null);
+            const fileInputRef = useRef(null);
+            const abortRef = useRef(null);
+
+            // 处理翻译
+            const handleTranslate = useCallback(async () => {
+                const text = inputText.trim();
+                if (!text) return;
+
+                setStatus('translating');
+                setResult('');
+                setErrorMsg('');
+                setProgress(10);
+                setProcessingStep('正在连接翻译引擎...');
+
+                const controller = new AbortController();
+                abortRef.current = controller;
+
+                try {
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: text,
+                            response_mode: 'streaming',
+                            user: 'book-translator'
+                        }),
+                        signal: controller.signal
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        throw new Error(errData.error || `请求失败 (${response.status})`);
+                    }
+
+                    setProgress(30);
+                    setProcessingStep('正在处理...');
+
+                    // 解析 SSE 流
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+                    let fullResult = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const eventData = JSON.parse(line.substring(6));
+                                    const evtType = eventData.event;
+                                    const data = eventData.data || eventData;
+
+                                    if (evtType === 'node_started') {
+                                        setProcessingStep(`正在处理: ${data.title || '...'}`);
+                                        // 逐步增加进度
+                                        setProgress(p => Math.min(p + 15, 80));
+                                    } else if (evtType === 'node_finished') {
+                                        setProgress(p => Math.min(p + 10, 90));
+                                    } else if (evtType === 'workflow_finished') {
+                                        const outputs = data.outputs || {};
+                                        fullResult = outputs.final || outputs.text || '';
+                                        setResult(fullResult);
+                                        setProcessingStep('');
+                                        setProgress(100);
+                                    } else if (evtType === 'error') {
+                                        throw new Error(eventData.message || '翻译过程出错');
+                                    }
+                                } catch (parseErr) {
+                                    // 忽略解析错误，继续处理
+                                }
+                            }
+                        }
+                    }
+
+                    if (fullResult) {
+                        setStatus('done');
+                        setProgress(100);
+                    } else if (status === 'translating') {
+                        // 流结束但没有收到 workflow_finished
+                        setStatus('done');
+                        setProgress(100);
+                    }
+                } catch (err) {
+                    if (err.name === 'AbortError') {
+                        setStatus('idle');
+                        setProcessingStep('');
+                    } else {
+                        setStatus('error');
+                        setErrorMsg(err.message || '翻译失败，请重试');
+                    }
+                    setProgress(0);
+                } finally {
+                    abortRef.current = null;
+                }
+            }, [inputText]);
+
+            // 取消翻译
+            const handleCancel = () => {
+                if (abortRef.current) {
+                    abortRef.current.abort();
+                }
+            };
+
+            // 清空
+            const handleClear = () => {
+                setInputText('');
+                setResult('');
+                setStatus('idle');
+                setErrorMsg('');
+                setProgress(0);
+                setProcessingStep('');
+                if (textareaRef.current) {
+                    textareaRef.current.focus();
+                }
+            };
+
+            // 复制结果
+            const handleCopy = async () => {
+                if (!result) return;
+                try {
+                    await navigator.clipboard.writeText(result);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                } catch {
+                    // fallback
+                    const ta = document.createElement('textarea');
+                    ta.value = result;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                }
+            };
+
+            // 文件上传
+            const handleFileUpload = (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    setInputText(evt.target.result || '');
+                    setStatus('idle');
+                    setResult('');
+                    setErrorMsg('');
+                };
+                reader.onerror = () => {
+                    setErrorMsg('文件读取失败');
+                };
+                reader.readAsText(file, 'UTF-8');
+                // 重置 input 以支持重复上传同一文件
+                e.target.value = '';
+            };
+
+            const isTranslating = status === 'translating';
+            const charCount = inputText.length;
+
+            return (
+                <div className="app-container">
+                    {/* 头部 */}
+                    <div className="header">
+                        <div className="header-icon">🌐</div>
+                        <h1>全书翻译</h1>
+                        <p>AI 驱动的智能文本翻译工具</p>
+                    </div>
+
+                    {/* 主卡片 */}
+                    <div className="main-card">
+                        {/* 输入区 */}
+                        <div className="input-section">
+                            <div className="section-title">
+                                <span className="dot"></span>
+                                输入文本
+                                <span style={{ marginLeft: 'auto' }}>
+                                    <span className={`status-badge ${status}`}>
+                                        <span className={`status-dot ${status}-bg`}></span>
+                                        {status === 'idle' && '就绪'}
+                                        {status === 'translating' && '翻译中'}
+                                        {status === 'done' && '完成'}
+                                        {status === 'error' && '出错'}
+                                    </span>
+                                </span>
+                            </div>
+                            <div className="textarea-wrapper">
+                                <textarea
+                                    ref={textareaRef}
+                                    className="input-textarea"
+                                    placeholder="在此粘贴需要翻译的文本，或点击下方「上传文件」导入 .txt 文档..."
+                                    value={inputText}
+                                    onChange={e => setInputText(e.target.value)}
+                                    disabled={isTranslating}
+                                />
+                            </div>
+                            <div className="char-count">
+                                {charCount.toLocaleString()} 字符
+                            </div>
+                        </div>
+
+                        {/* 进度条 */}
+                        {isTranslating && (
+                            <div style={{ padding: '0 24px' }}>
+                                <div className="progress-bar-wrapper">
+                                    <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+                                </div>
+                                <div className="loading-indicator" style={{ padding: '4px 0 16px' }}>
+                                    <div className="typing-dots">
+                                        <span></span><span></span><span></span>
+                                    </div>
+                                    <span>{processingStep || '翻译中...'}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 工具栏 */}
+                        <div className="toolbar">
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleTranslate}
+                                disabled={isTranslating || !inputText.trim()}
+                            >
+                                {isTranslating ? '⏳ 翻译中...' : '🔄 开始翻译'}
+                            </button>
+                            {isTranslating && (
+                                <button className="btn btn-secondary" onClick={handleCancel}>
+                                    取消
+                                </button>
+                            )}
+                            <button
+                                className="btn btn-file"
+                                disabled={isTranslating}
+                            >
+                                📁 上传文件
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    accept=".txt,.md,.csv,.json,.html,.xml"
+                                    onChange={handleFileUpload}
+                                />
+                            </button>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={handleClear}
+                                disabled={isTranslating}
+                            >
+                                清空
+                            </button>
+                        </div>
+
+                        {/* 错误信息 */}
+                        {errorMsg && status === 'error' && (
+                            <div style={{ padding: '0 24px 16px' }}>
+                                <div className="error-message">
+                                    ⚠️ {errorMsg}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 结果区 */}
+                        <div className="result-section">
+                            <div className="result-label">翻译结果</div>
+                            <div className="result-content">
+                                {isTranslating && !result && (
+                                    <span className="result-placeholder">翻译中，请稍候...</span>
+                                )}
+                                {result ? result : (
+                                    status !== 'translating' && (
+                                        <span className="result-placeholder">
+                                            翻译结果将显示在这里
+                                        </span>
+                                    )
+                                )}
+                            </div>
+
+                            {/* 结果操作按钮 */}
+                            {result && status === 'done' && (
+                                <div className="result-actions">
+                                    <button
+                                        className={`btn-sm ${copied ? 'copied' : ''}`}
+                                        onClick={handleCopy}
+                                    >
+                                        {copied ? '✅ 已复制' : '📋 复制结果'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

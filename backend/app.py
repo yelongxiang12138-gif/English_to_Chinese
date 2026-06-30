@@ -1,6 +1,6 @@
 """
 全书翻译 - 后端代理服务
-保护 API Key，转发请求到 Dify Workflow API
+转发请求到 Dify Workflow API，API 凭据由前端用户自行配置
 支持 streaming（优先）和 blocking（fallback）两种模式
 """
 import json
@@ -14,8 +14,6 @@ app = Flask(__name__, static_folder=None)
 CORS(app)
 
 # 前端目录：本地和 Vercel 环境自动适配
-# 本地: backend/../frontend -> frontend/
-# Vercel: backend/ 在项目根，frontend/ 同级
 _backend_dir = os.path.dirname(os.path.abspath(__file__))
 _frontend_candidates = [
     os.path.join(os.path.dirname(_backend_dir), 'frontend'),
@@ -23,26 +21,16 @@ _frontend_candidates = [
 ]
 FRONTEND_DIR = next((d for d in _frontend_candidates if os.path.isdir(d)), _frontend_candidates[0])
 
-DIFY_BASE_URL = "https://api.dify.ai/v1"
-DIFY_API_KEY = os.environ.get("DIFY_API_KEY", "app-tG3yKAkF6m2WhHCgOdmfoH36")
-
 # 请求超时时间（秒），根据文本长度动态调整
 TIMEOUT_PER_CHAR = 2.0
 MIN_TIMEOUT = 30
 MAX_TIMEOUT = 600
 
 
-def get_dify_headers():
-    return {
-        "Authorization": f"Bearer {DIFY_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-
-def call_dify_streaming(body, headers, timeout):
+def call_dify_streaming(url, body, headers, timeout):
     """尝试 streaming 模式"""
     return requests.post(
-        f"{DIFY_BASE_URL}/workflows/run",
+        url,
         json=body,
         headers=headers,
         stream=True,
@@ -50,12 +38,12 @@ def call_dify_streaming(body, headers, timeout):
     )
 
 
-def call_dify_blocking(body, headers, timeout):
+def call_dify_blocking(url, body, headers, timeout):
     """使用 blocking 模式"""
     body_copy = dict(body)
     body_copy["response_mode"] = "blocking"
     return requests.post(
-        f"{DIFY_BASE_URL}/workflows/run",
+        url,
         json=body_copy,
         headers=headers,
         timeout=timeout
@@ -87,15 +75,25 @@ def translate():
     """
     翻译接口 - 调用 Dify Workflow 进行全书翻译
     优先使用 streaming 模式，SSL失败时自动 fallback 到 blocking
+    前端必须提供 api_key，可选 base_url（默认官方 API 地址）
     """
     data = request.get_json()
     input_text = data.get('text', '')
     user = data.get('user', 'book-translator-user')
+    api_key = data.get('api_key', '').strip()
+    base_url = data.get('base_url', 'https://api.dify.ai/v1').strip().rstrip('/')
 
     if not input_text.strip():
         return jsonify({"error": "请输入需要翻译的文本"}), 400
 
-    headers = get_dify_headers()
+    if not api_key:
+        return jsonify({"error": "请先配置 Dify API Key（点击页面设置按钮）"}), 401
+
+    workflow_url = f"{base_url}/workflows/run"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
 
     # 根据文本长度动态计算超时时间
     timeout = max(MIN_TIMEOUT, min(len(input_text) * TIMEOUT_PER_CHAR, MAX_TIMEOUT))
@@ -108,17 +106,15 @@ def translate():
 
     # 尝试 streaming 模式
     try:
-        resp = call_dify_streaming(body, headers, timeout)
+        resp = call_dify_streaming(workflow_url, body, headers, timeout)
 
         if resp.status_code == 200:
-            # Streaming 成功，流式转发
             def generate():
                 try:
                     for chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
                         if chunk:
                             yield chunk
                 except Exception:
-                    # SSE 流中断，这是预期内的行为
                     pass
 
             return Response(
@@ -132,7 +128,6 @@ def translate():
 
         if resp.status_code != 200:
             error_text = resp.text[:500]
-            # 也可能返回的不是 streaming，尝试作为 JSON 解析
             try:
                 err_data = resp.json()
                 error_text = err_data.get('message', error_text)
@@ -141,16 +136,14 @@ def translate():
             return jsonify({"error": f"翻译服务异常 ({resp.status_code}): {error_text}"}), resp.status_code
 
     except (requests.exceptions.SSLError, requests.exceptions.ConnectionError) as e:
-        # SSL/连接失败，fallback 到 blocking 模式
         print(f"[Fallback] Streaming SSL error, retrying with blocking mode: {e}")
 
     except Exception as e:
-        # 其他错误也尝试 fallback
         print(f"[Fallback] Streaming error: {e}, retrying with blocking mode")
 
     # Fallback: blocking 模式
     try:
-        resp = call_dify_blocking(body, headers, timeout)
+        resp = call_dify_blocking(workflow_url, body, headers, timeout)
 
         if resp.status_code == 200:
             result_data = resp.json()
@@ -171,6 +164,38 @@ def translate():
 
     except Exception as e:
         return jsonify({"error": f"翻译请求失败: {str(e)}"}), 500
+
+
+@app.route('/api/proxy-test', methods=['POST'])
+def proxy_test():
+    """代理测试 Dify 连接，验证用户配置的 API 凭据"""
+    data = request.get_json()
+    url = data.get('url', '')
+    api_key = data.get('api_key', '').strip()
+
+    if not api_key:
+        return jsonify({"ok": False, "error": "请提供 API Key"}), 400
+
+    try:
+        resp = requests.get(
+            url,
+            headers={"Authorization": f"Bearer {api_key}"},
+            timeout=10
+        )
+        if resp.status_code == 200:
+            resp_data = resp.json()
+            app_name = ''
+            user_input = resp_data.get('user_input_form', [])
+            for item in user_input:
+                app_name = item.get('paragraph', {}).get('label', '') or app_name
+            return jsonify({"ok": True, "app_name": app_name})
+        else:
+            msg = resp.text[:200]
+            return jsonify({"ok": False, "error": f"认证失败 ({resp.status_code}): {msg}"})
+    except requests.exceptions.Timeout:
+        return jsonify({"ok": False, "error": "连接超时，请检查 Base URL 是否正确"}), 504
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"连接失败: {str(e)}"}), 502
 
 
 @app.route('/api/health', methods=['GET'])

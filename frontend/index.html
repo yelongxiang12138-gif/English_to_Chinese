@@ -19,6 +19,7 @@
             --border: #e2e8f0;
             --success: #10b981;
             --error: #ef4444;
+            --warning: #f59e0b;
             --radius: 12px;
             --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
             --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
@@ -33,213 +34,147 @@
             color: var(--text);
         }
 
-        .app-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 24px 16px;
-            min-height: 100vh;
-        }
+        .app-container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; min-height: 100vh; }
 
         /* 头部 */
-        .header {
-            text-align: center;
-            padding: 32px 0 20px;
-        }
+        .header { text-align: center; padding: 32px 0 20px; }
         .header-icon {
-            width: 60px;
-            height: 60px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            font-size: 28px;
-            backdrop-filter: blur(10px);
+            width: 60px; height: 60px; background: rgba(255,255,255,0.2);
+            border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px; font-size: 28px; backdrop-filter: blur(10px);
         }
-        .header h1 {
-            color: #fff;
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
+        .header h1 { color: #fff; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+        .header p { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 4px; }
+
+        /* 设置按钮 */
+        .settings-toggle-btn {
+            position: absolute; top: 16px; right: 16px;
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 1px solid var(--border); background: #fff;
+            font-size: 18px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+            transition: all 0.2s; color: var(--text-secondary);
+            box-shadow: var(--shadow);
         }
-        .header p {
-            color: rgba(255,255,255,0.8);
-            font-size: 14px;
-            margin-top: 4px;
+        .settings-toggle-btn:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+        .settings-toggle-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .settings-toggle-btn .dot-indicator {
+            position: absolute; top: -2px; right: -2px;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--warning); border: 2px solid #fff;
+        }
+
+        /* 设置面板 */
+        .settings-panel {
+            margin: 0 24px; padding: 20px;
+            background: linear-gradient(135deg, #fefce8, #fffbeb);
+            border: 1px solid #fde68a;
+            border-radius: var(--radius);
+            animation: slideDown 0.25s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+            to { opacity: 1; max-height: 300px; }
+        }
+        .settings-panel h3 { font-size: 14px; color: #92400e; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .settings-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+        .settings-row:last-child { margin-bottom: 0; }
+        .settings-row label { font-size: 12px; font-weight: 600; color: var(--text-secondary); min-width: 70px; }
+        .settings-input {
+            flex: 1; min-width: 200px; padding: 8px 12px;
+            border: 1px solid var(--border); border-radius: 6px;
+            font-size: 13px; outline: none;
+            font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .settings-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
+        .settings-input.key-input { letter-spacing: 0.03em; }
+        .settings-hint { font-size: 11px; color: #a16207; margin-bottom: 10px; }
+
+        .btn-sm-settings {
+            padding: 6px 14px; border: none; border-radius: 6px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.15s; white-space: nowrap;
+        }
+        .btn-sm-save { background: var(--primary); color: #fff; }
+        .btn-sm-save:hover { background: var(--primary-hover); }
+        .btn-sm-test { background: #fff; color: var(--text); border: 1px solid var(--border); }
+        .btn-sm-test:hover { background: #f1f5f9; }
+
+        /* 未配置 API 的警告 */
+        .api-warning {
+            margin: 0 24px 16px; padding: 12px 16px;
+            background: #fef2f2; border: 1px solid #fecaca;
+            border-radius: 8px; font-size: 13px; color: #b91c1c;
+            display: flex; align-items: center; gap: 8px;
         }
 
         /* 主卡片 */
         .main-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
+            background: var(--card-bg); border-radius: 16px;
+            box-shadow: var(--shadow-lg); overflow: hidden; position: relative;
         }
 
         /* 输入区 */
-        .input-section {
-            padding: 24px;
-        }
+        .input-section { padding: 24px; }
         .section-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px;
         }
-        .section-title .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--primary);
-        }
+        .section-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
 
-        .textarea-wrapper {
-            position: relative;
-        }
+        .textarea-wrapper { position: relative; }
         .input-textarea {
-            width: 100%;
-            min-height: 200px;
-            max-height: 400px;
-            padding: 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 15px;
-            line-height: 1.7;
-            resize: vertical;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: var(--text);
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
+            width: 100%; min-height: 200px; max-height: 400px;
+            padding: 16px; border: 2px solid var(--border);
+            border-radius: var(--radius); font-size: 15px; line-height: 1.7;
+            resize: vertical; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text); transition: border-color 0.2s, box-shadow 0.2s; outline: none;
         }
-        .input-textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-        .input-textarea::placeholder {
-            color: #94a3b8;
-        }
-        .char-count {
-            text-align: right;
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 6px;
-        }
+        .input-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        .input-textarea::placeholder { color: #94a3b8; }
+        .char-count { text-align: right; font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
 
         /* 工具栏 */
-        .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 24px 20px;
-            flex-wrap: wrap;
-        }
+        .toolbar { display: flex; align-items: center; gap: 10px; padding: 0 24px 20px; flex-wrap: wrap; }
 
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 20px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
         }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-primary {
             background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+            color: #fff; box-shadow: 0 4px 12px rgba(102,126,234,0.35);
         }
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45);
-        }
-        .btn-secondary {
-            background: #f1f5f9;
-            color: var(--text);
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background: #e2e8f0;
-        }
-        .btn-file {
-            background: #f1f5f9;
-            color: var(--text);
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-file input[type="file"] {
-            position: absolute;
-            left: 0; top: 0; right: 0; bottom: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .btn-file:hover {
-            background: #e2e8f0;
-        }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102,126,234,0.45); }
+        .btn-secondary { background: #f1f5f9; color: var(--text); }
+        .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+        .btn-file { background: #f1f5f9; color: var(--text); position: relative; overflow: hidden; }
+        .btn-file input[type="file"] { position: absolute; left: 0; top: 0; right: 0; bottom: 0; opacity: 0; cursor: pointer; }
+        .btn-file:hover { background: #e2e8f0; }
 
         /* 结果区 */
-        .result-section {
-            border-top: 1px solid var(--border);
-            padding: 24px;
-            background: #fafbfc;
-            min-height: 80px;
-        }
+        .result-section { border-top: 1px solid var(--border); padding: 24px; background: #fafbfc; min-height: 80px; }
         .result-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 12px;
+            font-size: 13px; font-weight: 600; color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;
         }
         .result-content {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px;
-            font-size: 15px;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            word-break: break-word;
-            min-height: 60px;
-            color: var(--text);
+            background: #fff; border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px; font-size: 15px;
+            line-height: 1.8; white-space: pre-wrap; word-break: break-word;
+            min-height: 60px; color: var(--text);
         }
-        .result-placeholder {
-            color: #94a3b8;
-            font-style: italic;
-        }
+        .result-placeholder { color: #94a3b8; font-style: italic; }
 
         /* 加载中 */
-        .loading-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 16px 20px;
-            color: var(--primary);
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-        .typing-dots span {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--primary);
-            animation: typing-bounce 1.4s infinite ease-in-out;
-        }
+        .loading-indicator { display: flex; align-items: center; gap: 10px; padding: 16px 20px; color: var(--primary); font-size: 14px; font-weight: 500; }
+        .typing-dots { display: flex; gap: 4px; }
+        .typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: typing-bounce 1.4s infinite ease-in-out; }
         .typing-dots span:nth-child(1) { animation-delay: 0s; }
         .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
@@ -250,96 +185,54 @@
         }
 
         /* 进度条 */
-        .progress-bar-wrapper {
-            margin: 8px 0 16px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            height: 4px;
-            overflow: hidden;
-        }
+        .progress-bar-wrapper { margin: 8px 0 16px; background: #e2e8f0; border-radius: 4px; height: 4px; overflow: hidden; }
         .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-            animation: shimmer 2s infinite;
+            height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px; transition: width 0.3s ease; animation: shimmer 2s infinite;
         }
-        @keyframes shimmer {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
+        @keyframes shimmer { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
         /* 错误提示 */
         .error-message {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: var(--error);
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-top: 12px;
+            background: #fef2f2; border: 1px solid #fecaca;
+            color: var(--error); padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-top: 12px;
         }
 
         /* 底部操作 */
-        .result-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-            justify-content: flex-end;
-        }
+        .result-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
         .btn-sm {
-            padding: 6px 14px;
-            font-size: 13px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: #fff;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+            padding: 6px 14px; font-size: 13px; border-radius: 6px;
+            border: 1px solid var(--border); background: #fff;
+            color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+            display: inline-flex; align-items: center; gap: 4px;
         }
-        .btn-sm:hover {
-            background: #f1f5f9;
-            color: var(--text);
-        }
-        .btn-sm.copied {
-            background: #ecfdf5;
-            border-color: #6ee7b7;
-            color: var(--success);
-        }
+        .btn-sm:hover { background: #f1f5f9; color: var(--text); }
+        .btn-sm.copied { background: #ecfdf5; border-color: #6ee7b7; color: var(--success); }
 
         /* 状态标签 */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
         .status-badge.idle { background: #f1f5f9; color: #64748b; }
         .status-badge.translating { background: #eef2ff; color: #4f46e5; }
         .status-badge.done { background: #ecfdf5; color: #10b981; }
         .status-badge.error { background: #fef2f2; color: #ef4444; }
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            display: inline-block;
-        }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
         .status-dot.idle-bg { background: #94a3b8; }
         .status-dot.translating-bg { background: #4f46e5; animation: pulse 1.5s infinite; }
         .status-dot.done-bg { background: #10b981; }
         .status-dot.error-bg { background: #ef4444; }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* toast */
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            z-index: 9999; animation: toastIn 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
         }
+        .toast.success { background: #ecfdf5; color: #065f46; }
+        .toast.error { background: #fef2f2; color: #991b1b; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
         /* 响应式 */
         @media (max-width: 768px) {
@@ -350,6 +243,10 @@
             .toolbar { padding: 0 16px 12px; }
             .input-textarea { min-height: 150px; font-size: 14px; }
             .btn { padding: 8px 14px; font-size: 13px; }
+            .settings-row { flex-direction: column; align-items: stretch; }
+            .settings-row label { min-width: auto; }
+            .settings-panel { margin: 0 16px; }
+            .api-warning { margin: 0 16px 16px; }
         }
     </style>
 </head>
@@ -357,24 +254,87 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useRef, useCallback } = React;
+        const { useState, useRef, useCallback, useEffect } = React;
+
+        const STORAGE_KEY_BASE = 'translator_base_url';
+        const STORAGE_KEY_API  = 'translator_api_key';
+        const DEFAULT_BASE_URL = 'https://api.dify.ai/v1';
 
         function App() {
             const [inputText, setInputText] = useState('');
             const [result, setResult] = useState('');
-            const [status, setStatus] = useState('idle'); // idle | translating | done | error
+            const [status, setStatus] = useState('idle');
             const [errorMsg, setErrorMsg] = useState('');
             const [progress, setProgress] = useState(0);
             const [copied, setCopied] = useState(false);
             const [processingStep, setProcessingStep] = useState('');
+
+            // API 设置
+            const [showSettings, setShowSettings] = useState(false);
+            const [baseUrl, setBaseUrl] = useState(() => localStorage.getItem(STORAGE_KEY_BASE) || DEFAULT_BASE_URL);
+            const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEY_API) || '');
+            const [testing, setTesting] = useState(false);
+            const [toast, setToast] = useState(null);
+
             const textareaRef = useRef(null);
             const fileInputRef = useRef(null);
             const abortRef = useRef(null);
+
+            // localStorage 持久化
+            useEffect(() => { localStorage.setItem(STORAGE_KEY_BASE, baseUrl); }, [baseUrl]);
+            useEffect(() => { localStorage.setItem(STORAGE_KEY_API, apiKey); }, [apiKey]);
+
+            const showToast = (type, msg) => {
+                setToast({ type, msg });
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            // 测试 API 连接
+            const handleTestConnection = async () => {
+                if (!apiKey.trim()) {
+                    showToast('error', '请先填写 API Key');
+                    return;
+                }
+                setTesting(true);
+                try {
+                    const url = `${baseUrl.replace(/\/+$/, '')}/parameters`;
+                    const resp = await fetch('/api/proxy-test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url, api_key: apiKey })
+                    });
+                    const data = await resp.json();
+                    if (resp.ok && data.ok) {
+                        showToast('success', `连接成功！应用: ${data.app_name || 'OK'}`);
+                    } else {
+                        showToast('error', data.error || '连接失败，请检查 Base URL 和 API Key');
+                    }
+                } catch (e) {
+                    showToast('error', '网络错误，无法连接到 Dify');
+                } finally {
+                    setTesting(false);
+                }
+            };
+
+            // 保存设置
+            const handleSaveSettings = () => {
+                setShowSettings(false);
+                showToast('success', '设置已保存');
+            };
+
+            const hasApiKey = apiKey.trim().length > 0;
 
             // 处理翻译
             const handleTranslate = useCallback(async () => {
                 const text = inputText.trim();
                 if (!text) return;
+
+                if (!hasApiKey) {
+                    setShowSettings(true);
+                    setErrorMsg('请先配置 Dify API Key');
+                    setStatus('error');
+                    return;
+                }
 
                 setStatus('translating');
                 setResult('');
@@ -391,7 +351,8 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             text: text,
-                            response_mode: 'streaming',
+                            api_key: apiKey,
+                            base_url: baseUrl,
                             user: 'book-translator'
                         }),
                         signal: controller.signal
@@ -405,7 +366,6 @@
                     setProgress(30);
                     setProcessingStep('正在处理...');
 
-                    // 解析 SSE 流
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     let buffer = '';
@@ -428,7 +388,6 @@
 
                                     if (evtType === 'node_started') {
                                         setProcessingStep(`正在处理: ${data.title || '...'}`);
-                                        // 逐步增加进度
                                         setProgress(p => Math.min(p + 15, 80));
                                     } else if (evtType === 'node_finished') {
                                         setProgress(p => Math.min(p + 10, 90));
@@ -441,9 +400,7 @@
                                     } else if (evtType === 'error') {
                                         throw new Error(eventData.message || '翻译过程出错');
                                     }
-                                } catch (parseErr) {
-                                    // 忽略解析错误，继续处理
-                                }
+                                } catch (parseErr) {}
                             }
                         }
                     }
@@ -452,7 +409,6 @@
                         setStatus('done');
                         setProgress(100);
                     } else if (status === 'translating') {
-                        // 流结束但没有收到 workflow_finished
                         setStatus('done');
                         setProgress(100);
                     }
@@ -468,29 +424,17 @@
                 } finally {
                     abortRef.current = null;
                 }
-            }, [inputText]);
+            }, [inputText, apiKey, baseUrl, hasApiKey]);
 
-            // 取消翻译
-            const handleCancel = () => {
-                if (abortRef.current) {
-                    abortRef.current.abort();
-                }
-            };
+            const handleCancel = () => { if (abortRef.current) abortRef.current.abort(); };
 
-            // 清空
             const handleClear = () => {
-                setInputText('');
-                setResult('');
-                setStatus('idle');
-                setErrorMsg('');
-                setProgress(0);
-                setProcessingStep('');
-                if (textareaRef.current) {
-                    textareaRef.current.focus();
-                }
+                setInputText(''); setResult('');
+                setStatus('idle'); setErrorMsg('');
+                setProgress(0); setProcessingStep('');
+                if (textareaRef.current) textareaRef.current.focus();
             };
 
-            // 复制结果
             const handleCopy = async () => {
                 if (!result) return;
                 try {
@@ -498,7 +442,6 @@
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                 } catch {
-                    // fallback
                     const ta = document.createElement('textarea');
                     ta.value = result;
                     document.body.appendChild(ta);
@@ -510,22 +453,16 @@
                 }
             };
 
-            // 文件上传
             const handleFileUpload = (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = (evt) => {
                     setInputText(evt.target.result || '');
-                    setStatus('idle');
-                    setResult('');
-                    setErrorMsg('');
+                    setStatus('idle'); setResult(''); setErrorMsg('');
                 };
-                reader.onerror = () => {
-                    setErrorMsg('文件读取失败');
-                };
+                reader.onerror = () => setErrorMsg('文件读取失败');
                 reader.readAsText(file, 'UTF-8');
-                // 重置 input 以支持重复上传同一文件
                 e.target.value = '';
             };
 
@@ -534,15 +471,86 @@
 
             return (
                 <div className="app-container">
+                    {/* Toast */}
+                    {toast && (
+                        <div className={`toast ${toast.type}`}>
+                            {toast.type === 'success' ? '✅' : '❌'} {toast.msg}
+                        </div>
+                    )}
+
                     {/* 头部 */}
                     <div className="header">
                         <div className="header-icon">🌐</div>
                         <h1>全书翻译</h1>
-                        <p>AI 驱动的智能文本翻译工具</p>
+                        <p>AI 驱动的智能文本翻译工具 — 请自行配置 Dify API 凭据</p>
                     </div>
 
                     {/* 主卡片 */}
                     <div className="main-card">
+                        {/* 设置按钮 */}
+                        <button
+                            className={`settings-toggle-btn ${showSettings ? 'active' : ''}`}
+                            onClick={() => setShowSettings(!showSettings)}
+                            title="API 设置"
+                        >
+                            ⚙
+                            {!hasApiKey && <span className="dot-indicator"></span>}
+                        </button>
+
+                        {/* 设置面板 */}
+                        {showSettings && (
+                            <div className="settings-panel">
+                                <h3>🔑 Dify API 设置（凭据仅保存在您的浏览器中）</h3>
+                                <div className="settings-hint">
+                                    需要先在 Dify 中创建工作流应用，获取 API Key 后填入下方。
+                                    如何使用 →
+                                    <a href="https://docs.dify.ai/zh" target="_blank" style={{color:'#92400e'}}>
+                                        Dify 文档
+                                    </a>
+                                </div>
+                                <div className="settings-row">
+                                    <label>Base URL</label>
+                                    <input
+                                        className="settings-input"
+                                        type="text"
+                                        value={baseUrl}
+                                        onChange={e => setBaseUrl(e.target.value)}
+                                        placeholder="https://api.dify.ai/v1"
+                                    />
+                                </div>
+                                <div className="settings-row">
+                                    <label>API Key</label>
+                                    <input
+                                        className="settings-input key-input"
+                                        type="password"
+                                        value={apiKey}
+                                        onChange={e => setApiKey(e.target.value)}
+                                        placeholder="app-xxxxxxxxxxxx"
+                                    />
+                                </div>
+                                <div className="settings-row">
+                                    <label></label>
+                                    <button className="btn-sm-settings btn-sm-save" onClick={handleSaveSettings}>
+                                        保存设置
+                                    </button>
+                                    <button
+                                        className="btn-sm-settings btn-sm-test"
+                                        onClick={handleTestConnection}
+                                        disabled={testing || !apiKey.trim()}
+                                    >
+                                        {testing ? '⏳ 测试中...' : '🔌 测试连接'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 未配置 API 警告 */}
+                        {!hasApiKey && !showSettings && (
+                            <div className="api-warning">
+                                ⚠️ 尚未配置 API Key，点击右上角 ⚙ 图标设置 Dify 凭据后即可使用
+                            </div>
+                        )}
+
                         {/* 输入区 */}
                         <div className="input-section">
                             <div className="section-title">
@@ -568,9 +576,7 @@
                                     disabled={isTranslating}
                                 />
                             </div>
-                            <div className="char-count">
-                                {charCount.toLocaleString()} 字符
-                            </div>
+                            <div className="char-count">{charCount.toLocaleString()} 字符</div>
                         </div>
 
                         {/* 进度条 */}
@@ -580,9 +586,7 @@
                                     <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
                                 </div>
                                 <div className="loading-indicator" style={{ padding: '4px 0 16px' }}>
-                                    <div className="typing-dots">
-                                        <span></span><span></span><span></span>
-                                    </div>
+                                    <div className="typing-dots"><span></span><span></span><span></span></div>
                                     <span>{processingStep || '翻译中...'}</span>
                                 </div>
                             </div>
@@ -590,45 +594,23 @@
 
                         {/* 工具栏 */}
                         <div className="toolbar">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleTranslate}
-                                disabled={isTranslating || !inputText.trim()}
-                            >
+                            <button className="btn btn-primary" onClick={handleTranslate} disabled={isTranslating || !inputText.trim()}>
                                 {isTranslating ? '⏳ 翻译中...' : '🔄 开始翻译'}
                             </button>
                             {isTranslating && (
-                                <button className="btn btn-secondary" onClick={handleCancel}>
-                                    取消
-                                </button>
+                                <button className="btn btn-secondary" onClick={handleCancel}>取消</button>
                             )}
-                            <button
-                                className="btn btn-file"
-                                disabled={isTranslating}
-                            >
+                            <button className="btn btn-file" disabled={isTranslating}>
                                 📁 上传文件
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    accept=".txt,.md,.csv,.json,.html,.xml"
-                                    onChange={handleFileUpload}
-                                />
+                                <input type="file" ref={fileInputRef} accept=".txt,.md,.csv,.json,.html,.xml" onChange={handleFileUpload} />
                             </button>
-                            <button
-                                className="btn btn-secondary"
-                                onClick={handleClear}
-                                disabled={isTranslating}
-                            >
-                                清空
-                            </button>
+                            <button className="btn btn-secondary" onClick={handleClear} disabled={isTranslating}>清空</button>
                         </div>
 
                         {/* 错误信息 */}
                         {errorMsg && status === 'error' && (
                             <div style={{ padding: '0 24px 16px' }}>
-                                <div className="error-message">
-                                    ⚠️ {errorMsg}
-                                </div>
+                                <div className="error-message">⚠️ {errorMsg}</div>
                             </div>
                         )}
 
@@ -636,25 +618,14 @@
                         <div className="result-section">
                             <div className="result-label">翻译结果</div>
                             <div className="result-content">
-                                {isTranslating && !result && (
-                                    <span className="result-placeholder">翻译中，请稍候...</span>
-                                )}
+                                {isTranslating && !result && <span className="result-placeholder">翻译中，请稍候...</span>}
                                 {result ? result : (
-                                    status !== 'translating' && (
-                                        <span className="result-placeholder">
-                                            翻译结果将显示在这里
-                                        </span>
-                                    )
+                                    status !== 'translating' && <span className="result-placeholder">翻译结果将显示在这里</span>
                                 )}
                             </div>
-
-                            {/* 结果操作按钮 */}
                             {result && status === 'done' && (
                                 <div className="result-actions">
-                                    <button
-                                        className={`btn-sm ${copied ? 'copied' : ''}`}
-                                        onClick={handleCopy}
-                                    >
+                                    <button className={`btn-sm ${copied ? 'copied' : ''}`} onClick={handleCopy}>
                                         {copied ? '✅ 已复制' : '📋 复制结果'}
                                     </button>
                                 </div>

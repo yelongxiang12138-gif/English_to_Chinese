@@ -13,10 +13,18 @@ import requests
 app = Flask(__name__, static_folder=None)
 CORS(app)
 
-FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
+# 前端目录：本地和 Vercel 环境自动适配
+# 本地: backend/../frontend -> frontend/
+# Vercel: backend/ 在项目根，frontend/ 同级
+_backend_dir = os.path.dirname(os.path.abspath(__file__))
+_frontend_candidates = [
+    os.path.join(os.path.dirname(_backend_dir), 'frontend'),
+    os.path.join(_backend_dir, '..', 'frontend'),
+]
+FRONTEND_DIR = next((d for d in _frontend_candidates if os.path.isdir(d)), _frontend_candidates[0])
 
 DIFY_BASE_URL = "https://api.dify.ai/v1"
-DIFY_API_KEY = "app-tG3yKAkF6m2WhHCgOdmfoH36"
+DIFY_API_KEY = os.environ.get("DIFY_API_KEY", "app-tG3yKAkF6m2WhHCgOdmfoH36")
 
 # 请求超时时间（秒），根据文本长度动态调整
 TIMEOUT_PER_CHAR = 2.0
